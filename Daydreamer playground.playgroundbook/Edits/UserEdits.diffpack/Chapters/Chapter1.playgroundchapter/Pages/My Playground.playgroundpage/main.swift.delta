@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Diff</key>
+	<array>
+		<dict>
+			<key>ModifiedContent</key>
+			<string>import Foundation
+import UIKit
+import PlaygroundSupport
+
+PlaygroundPage.current.needsIndefiniteExecution = true
+
+let fileKey = "lUfHc6IcPjXVgVVVWjDgpx"
+
+let data = Config.fileData.data(using: .utf8)!
+let decoder = JSONDecoder()
+let file = try! decoder.decode(Figma.File.self, from: data)
+print(file)
+
+let page = file.document.children[0] as! Figma.Canvas
+
+extension UIColor {
+    convenience init(figmaColor: Figma.Color) {
+        self.init(red: figmaColor.r, green: figmaColor.g, blue: figmaColor.b, alpha: figmaColor.a)
+    }
+}
+
+extension CGRect {
+    init(figmaRect: Figma.Rect) {
+        self.init(x: figmaRect.x, y: figmaRect.y, width: figmaRect.width, height: figmaRect.height)
+    }
+}
+
+extension CGSize {
+    init(figmaSize: Figma.Size) {
+        self.init(width: figmaSize.x, height: figmaSize.y)
+    }
+}
+
+extension CGAffineTransform {
+    init(figmaTransform: Figma.RelativeTransform, size: Figma.Size) {
+        self.init(a: figmaTransform.row1[0], b: figmaTransform.row2[0],
+                  c: figmaTransform.row1[1], d: figmaTransform.row2[1],
+                  tx: figmaTransform.row1[2] + size.x / 2,
+                  ty: figmaTransform.row2[2] + size.y / 2)
+    }
+}
+
+let canvas = UIScrollView()
+canvas.frame = CGRect(x: 0, y: 0, width: 500, height: 500)
+canvas.backgroundColor = UIColor(figmaColor: page.backgroundColor)
+var boundingRect = CGRect.zero
+for node in page.children {
+    switch node {
+    case let vector as Figma.Vector:
+        let frame = CGRect(figmaRect: vector.absoluteBoundingBox)
+        boundingRect = boundingRect.union(frame)
+        
+        let view: UIView
+        if node is Figma.Rectangle {
+            view = UIView()
+            for fill in vector.fills {
+                switch fill {
+                case let solid as Figma.Paint.Solid:
+                    view.backgroundColor = UIColor(figmaColor: solid.color)
+                default:
+                    fatalError("Unhandled")
+                }
+            }
+        } else if let textNode = node as? Figma.Text {
+            let label = UILabel()
+            label.font = UIFont.systemFont(ofSize: textNode.style.fontSize)
+            for fill in vector.fills {
+                switch fill {
+                case let solid as Figma.Paint.Solid:
+                    label.textColor = UIColor(figmaColor: solid.color)
+                default:
+                    fatalError("Unhandled")
+                }
+            }
+            label.text = textNode.characters
+            view = label
+        } else {
+            fatalError("Unhandled type")
+        }
+        view.bounds = CGRect(origin: .zero, size: CGSize(figmaSize: vector.size))
+        view.transform = CGAffineTransform(figmaTransform: vector.relativeTransform, size: vector.size)
+        canvas.addSubview(view)
+    default:
+        fatalError("Unhandled")
+    }
+}
+print(boundingRect)
+//boundingRect = boundingRect.insetBy(dx: -1000, dy: -1000)
+canvas.contentInset = UIEdgeInsets(top: -boundingRect.minY, left: -boundingRect.minX, bottom: 0, right: 0)
+canvas.contentSize = boundingRect.size
+
+PlaygroundPage.current.liveView = canvas
+
+//
+//do {
+//    let file = try decoder.decode(Figma.File.self, from: data)
+//    file
+//    let node = file.document.children![0]
+//    print("id: \(node.id)")
+//    print("type: \(node.type)")
+//    print("data: \(node.data)")
+//} catch {
+//    print("Failed to decode file \(error)")
+//    print(String(data: data, encoding: .utf8)!)
+//    exit(0)
+//}
+//
+//
+//let url = URL(string: "https://api.figma.com/v1/files/\(fileKey)?geometry=paths")!
+//var request = URLRequest(url: url)
+//request.addValue(Config.figmaToken, forHTTPHeaderField: "X-FIGMA-TOKEN")
+//let task = URLSession.shared.dataTask(with: request) {(data, response, error) in
+//    guard let data = data else { return }
+//    let decoder = JSONDecoder()
+//    guard let file = try? decoder.decode(Figma.File.self, from: data) else {
+//        print("Failed to decode file")
+//        print(String(data: data, encoding: .utf8)!)
+//        return
+//    }
+//    file
+//    print(String(data: data, encoding: .utf8)!)
+//}
+//task.resume()
+//
+</string>
+			<key>ModifiedRange</key>
+			<string>{0, 4105}</string>
+			<key>OriginalContent</key>
+			<string>
+</string>
+			<key>OriginalRange</key>
+			<string>{0, 1}</string>
+		</dict>
+	</array>
+	<key>File</key>
+	<string>Chapters/Chapter1.playgroundchapter/Pages/My Playground.playgroundpage/main.swift</string>
+</dict>
+</plist>
